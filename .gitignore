@@ -1,0 +1,65 @@
+# Secrets
+
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checking
+.mypy_cache/
+.pyre/
+.ruff_cache/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Data (generated/raw datasets)
+data/raw/
+data/processed/
+*.csv
+*.parquet
+*.sqlite
+
+# Environment variables
+.env.local
+.env
+
+# Telethon issues
+*.session
