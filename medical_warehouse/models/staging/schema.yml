@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: telegram_messages
+
+models:
+  - name: stg_telegram_messages
+    description: "Cleaned and standardized Telegram messages from all channels."
+    columns:
+      - name: message_id
+        description: "Unique message identifier"
+        tests: [not_null]
+      - name: channel_name
+        description: "Telegram channel handle (without @)"
+        tests: [not_null]
+      - name: message_date
+        tests: [not_null]
+      - name: message_length
+        description: "Character count of message text"
+      - name: has_image
+        description: "True if the message had a photo attached"
+      - name: views
+        description: "View count, guaranteed non-negative"
+      - name: forwards
+        description: "Forward count, guaranteed non-negative"
