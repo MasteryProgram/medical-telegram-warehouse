@@ -1,2 +1,8 @@
 telethon==1.36.0
 python-dotenv==1.0.1
+fastapi==0.115.0
+uvicorn==0.30.6
+sqlalchemy==2.0.34
+psycopg2-binary==2.9.0
+dagster==1.8.0
+ultralytics==8.2.0
