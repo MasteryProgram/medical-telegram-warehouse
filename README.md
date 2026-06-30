@@ -10,79 +10,96 @@ structured analytical data warehouse.
 ---
 
 ## Pipeline Overview
+
 Telegram Channels
 
 ↓
 
-Telethon scraper  →  data/raw/ (JSON + images)
+Telethon scraper → data/raw/ (JSON + images)
 
 ↓
 
-load_to_postgres  →  raw.telegram_messages (PostgreSQL)
+load_to_postgres → raw.telegram_messages (PostgreSQL)
 
 ↓
 
-dbt staging       →  staging.stg_telegram_messages
+dbt staging → staging.stg_telegram_messages
 
 ↓
 
-dbt marts         →  dim_channels · dim_dates · fct_messages
+dbt marts → dim_channels · dim_dates · fct_messages
 
 ↓
 
-YOLOv8            →  fct_image_detections
+YOLOv8 → fct_image_detections
 
 ↓
 
-FastAPI           →  /api/reports/* endpoints
+FastAPI → /api/reports/\* endpoints
 
 ## Channels Scraped
 
-| Channel | Type |
-|---|---|
-| @lobelia4cosmetics | Cosmetics & Health |
-| @tikvahpharma | Pharmaceuticals |
-| @CheMed123 | Medical Supplies |
-| @DoctorsET | Medical Information |
+| Channel            | Type                |
+| ------------------ | ------------------- |
+| @lobelia4cosmetics | Cosmetics & Health  |
+| @tikvahpharma      | Pharmaceuticals     |
+| @CheMed123         | Medical Supplies    |
+| @DoctorsET         | Medical Information |
 
 ## Project Structure
+
 medical-telegram-warehouse/
 
 ├── src/
 
-│   ├── scraper.py          # Telegram scraper (Telethon)
+│ ├── scraper.py # Telegram scraper (Telethon)
 
-│   ├── datalake.py         # Data lake read/write utilities
+│ ├── datalake.py # Data lake read/write utilities
 
-│   └── load_to_postgres.py # Loads JSON into PostgreSQL
+│ ├── load_to_postgres.py # Loads JSON into PostgreSQL
 
-├── medical_warehouse/      # dbt project
+│ └── yolo_detect.py # YOLO enrichment for downloaded images
 
-│   ├── models/
+├── api/ # FastAPI analytical API
 
-│   │   ├── staging/        # stg_telegram_messages
+│ ├── main.py
 
-│   │   └── marts/          # dim_channels, dim_dates, fct_messages
+│ ├── database.py
 
-│   └── tests/              # Custom data quality tests
+│ └── schemas.py
+
+├── medical_warehouse/ # dbt project
+
+│ ├── models/
+
+│ │ ├── staging/ # stg_telegram_messages
+
+│ │ └── marts/ # dim_channels, dim_dates, fct_messages, fct_image_detections
+
+│ └── tests/ # Custom data quality tests
+
+├── workflows/
+
+│ └── dagster_pipeline.py # Dagster orchestration entry point
 
 ├── notebooks/
 
-│   ├── task1_scraping.ipynb
+│ ├── task1_scraping.ipynb
 
-│   └── task2_dbt.ipynb
+│ └── task2_dbt.ipynb
 
-├── data/                   # Data lake (gitignored)
+├── data/ # Data lake (gitignored)
 
-├── logs/                   # Scrape logs (gitignored)
+├── logs/ # Scrape logs (gitignored)
 
-├── .env                    # Credentials (never commit)
+├── .env # Credentials (never commit)
 
-└── docker-compose.yml      # PostgreSQL container
+└── docker-compose.yml # PostgreSQL container
 
 ## Quickstart
 
 **1. Clone and install dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -103,53 +120,77 @@ DB_USER=postgres
 DB_PASSWORD=postgres
 
 **3. Start PostgreSQL**
+
 ```bash
 docker compose up -d
 ```
 
 **4. Run demo scraper (no Telegram auth needed)**
+
 ```bash
 python src/scraper.py --demo --path data --limit 15
 ```
 
 **5. Load into PostgreSQL**
+
 ```bash
 python src/load_to_postgres.py --path data
 ```
 
 **6. Run dbt transformations**
+
 ```bash
 cd medical_warehouse
 dbt run
 dbt test
 ```
 
+**7. Run YOLO enrichment**
+
+```bash
+python src/yolo_detect.py --path data --output data/yolo_results.csv
+```
+
+**8. Start the FastAPI app**
+
+```bash
+uvicorn api.main:app --reload
+```
+
+**9. Run the Dagster pipeline**
+
+```bash
+python -m dagster dev -f workflows/dagster_pipeline.py
+```
+
 ## Data Lake Structure
+
 data/raw/
 
 ├── telegram_messages/
 
-│   └── YYYY-MM-DD/
+│ └── YYYY-MM-DD/
 
-│       ├── lobelia4cosmetics.json
+│ ├── lobelia4cosmetics.json
 
-│       ├── tikvahpharma.json
+│ ├── tikvahpharma.json
 
-│       ├── CheMed123.json
+│ ├── CheMed123.json
 
-│       ├── DoctorsET.json
+│ ├── DoctorsET.json
 
-│       └── _manifest.json
+│ └── \_manifest.json
 
 ├── images/
 
-│   └── {channel_name}/{message_id}.jpg
+│ └── {channel_name}/{message_id}.jpg
 
 └── csv/
 
 └── YYYY-MM-DD/telegram_data.csv
 
 ## Star Schema
+
      dim_channels          dim_dates
      (channel_key)         (date_key)
            ↖                  ↗
@@ -163,9 +204,9 @@ data/raw/
 
 - Never commit `.env`, `*.session`, or `data/` to git
 - Your `.gitignore` must include:
-.env
+  .env
 
-*.session
+\*.session
 
 data/
 
